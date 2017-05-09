@@ -25,25 +25,70 @@ int handleWait(const uint8_t* buffer, size_t length)
 {
     // Wait command structure:
     // X: [wait in ms]
+    // Token is first three chars [X: ]
 
-    // Iterate through the payload
-    // First three chars (W,:, ,) are diregarded
-    // TODO: Is this safe to assume (speed vs safety)
+    // Allocate a data string
+    char dataString[length+1];
+    memcpy(dataString, buffer, length+1);
     
-    size_t payloadLength = length - 3;
-    char payload[payloadLength];
+    // Add new line to buffer so strtok works
+    dataString[length+1] = '\n';
 
-    for(size_t i = 3; i < length; ++i)
+    // Get the wait time
+    char* pch;
+    int waitTime = 0;
+    pch = strtok(dataString,"X: ");
+
+    while(pch != NULL)
     {
-        // Pack the payload
-        auto payloadIndex = i - 3;
-        payload[payloadIndex] = buffer[i];
+        waitTime = static_cast<int>(atoi(pch));
+        pch = strtok(NULL, " ");
     }
 
-    // Convert to an integer wait in ms
-    int waitTime;
-    waitTime = static_cast<int>(atoi(payload));
-    std::cout << "Waiting for " << waitTime << " ms" << std::endl;
+    std::cout << "Wait time: " << waitTime <<  std::endl;
+    if(waitTime == 0)
+    {
+        // Bad string, report error
+        return -1;
+    }
+
+    // TODO: Logic to wait for x ms using hasElapsed();
+    return 0;
+}
+
+int handleWrite(const uint8_t* buffer, size_t length)
+{
+    // Write command structure:
+    // W: [i2caddr][regaddr] [payload]
+
+    // First three chars (W,:, ,) are diregarded
+    // std::cout << "Data in: ";
+    // for(size_t k = 0; k < length; ++k)
+    // {
+    //     std::cout << buffer[k];
+    // }
+    // std::cout << std::endl;
+    char dataString[length+1];
+    memcpy(dataString, buffer, length+1);
+
+    // Add new line to buffer so strtok works
+    dataString[length+1] = '\n';
+
+    char* tok;
+    int counter = 0;
+
+    tok = strtok(dataString, " ");
+    while(tok != NULL)
+    {
+        std::cout << "Bleh:" << counter << ":" << tok << std::endl;
+        ++counter;
+        tok = strtok(NULL, " ");
+    }
+    // for(size_t i = 0; i < length + 1; ++i)
+    // {
+    //     std::cout << "i:" << dataString[i] << std::endl;
+    // }
+    // std::cout << std::endl;
 
     return 0;
 }
@@ -68,8 +113,8 @@ int main(int argc, const char* argv[])
         // Check the key
         if(isNewLine)
         {
-            std::cout << "Got a new line." << std::endl;
-            std::cout << "Key: " << k_battery[i] << std::endl;
+            //std::cout << "Got a new line." << std::endl;
+            //std::cout << "Key: " << k_battery[i] << std::endl;
             key = k_battery[i];
 
             isNewLine = false;
@@ -90,35 +135,37 @@ int main(int argc, const char* argv[])
             {
                 case(commentKey):
                 {
-                    std::cout << "Got a comment." << std::endl;
+                    //std::cout << "Got a comment. No action." << std::endl;
                     break;
                 }
                 case(compareKey):
                 {
-                    std::cout << "Got a compareKey" << std::endl;
+                    //std::cout << "Handling compare: " << std::endl;
                     break;
                 }
                 case(waitKey):
                 {
-                    std::cout << "Got a wait" << std::endl;
+                    std::cout << "Handling wait: " << std::endl;
                     auto ret = handleWait(buffer, counter);
                     std::cout << "Ret code: " << ret << std::endl;
                     break;
                 }
                 case(writeKey):
                 {
-                    std::cout << "Got a write" << std::endl;
+                    std::cout << "Handling Write: " << std::endl;
+                    auto ret = handleWrite(buffer, counter);
+                    std::cout << "Ret Code: " << ret << std::endl;
                     break;
                 }
                 default:
                 {
-                    std::cout << "Unrecongnized key" << std::endl;
+                    std::cout << "Unrecongnized key. No action" << std::endl;
                     break;
                 }
             }
 
-
-            std::cout << std::endl;
+            // Pretty pretty
+            //std::cout << std::endl;
 
             // Reset
             counter = 0;
