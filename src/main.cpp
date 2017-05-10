@@ -65,7 +65,7 @@ int handleWrite(const uint8_t* buffer, size_t length)
     char dataString[length+1];
     memcpy(dataString, buffer, length+1);
 
-    // Add new line to buffer so strtok works
+    // Add new line to buffer so strtok_r works as intended
     dataString[length+1] = '\n';
 
     // A placeholder to walk the pointer through the data string
@@ -84,10 +84,59 @@ int handleWrite(const uint8_t* buffer, size_t length)
     i2cAddress = strtok_r(NULL, " ", &tokenPointer);
     regAddress = strtok_r(NULL, " ", &tokenPointer);
 
-    std::cout << "Writing to i2c: " << i2cAddress << " at reg: " << regAddress << " with data: " << tokenPointer << std::endl;
+    std::cout << "Writing to i2c: " << i2cAddress << " at reg: " << regAddress << " with data payload: " << std::endl;
 
+    char* iterator = NULL;
+    for(iterator = tokenPointer; *iterator != '\0'; ++iterator)
+    {
+        std::cout << *iterator << ',';
+    }
+    std::cout << std::endl;
     // TODO: Write over i2c
 
+    return 0;
+}
+
+int handleCompare(const uint8_t* buffer, size_t length)
+{
+    // Compare reads from an address, and then does a comparison
+
+    // Compare command structure: 
+    // C: [i2caddr] [reg address] [data to compre]
+
+    char dataString[length+1];
+    memcpy(dataString, buffer, length+1);
+
+    // Add new line to buffer so strtok_r works as intended
+    dataString[length+1] = '\n';
+
+    // A placeholder to walk the pointer through the data string
+    char* tokenPointer;
+
+    // W: 
+    char* key;
+
+    // The i2c address
+    char* i2cAddress;
+
+    // The register address
+    char* regAddress;
+
+    key = strtok_r(dataString, " ", &tokenPointer);
+    i2cAddress = strtok_r(NULL, " ", &tokenPointer);
+    regAddress = strtok_r(NULL, " ", &tokenPointer);
+
+    std::cout << "Reading from i2c: " << i2cAddress << " at reg: " << regAddress << " with data payload: " << std::endl;
+    
+    char* iterator = NULL;
+    for(iterator = tokenPointer; *iterator != '\0'; ++iterator)
+    {
+        std::cout << *iterator << ',';
+    }
+    std::cout << std::endl;
+
+    // TODO: Read from i2c
+    // TODO: Compare
     return 0;
 }
 
@@ -138,7 +187,10 @@ int main(int argc, const char* argv[])
                 }
                 case(compareKey):
                 {
-                    //std::cout << "Handling compare: " << std::endl;
+                    std::cout << "Handling compare: " << std::endl;
+                    auto ret = handleCompare(buffer, counter);
+                    std::cout << "Ret code: " << ret << std::endl;
+
                     break;
                 }
                 case(waitKey):
