@@ -62,33 +62,31 @@ int handleWrite(const uint8_t* buffer, size_t length)
     // W: [i2caddr][regaddr] [payload]
 
     // First three chars (W,:, ,) are diregarded
-    // std::cout << "Data in: ";
-    // for(size_t k = 0; k < length; ++k)
-    // {
-    //     std::cout << buffer[k];
-    // }
-    // std::cout << std::endl;
     char dataString[length+1];
     memcpy(dataString, buffer, length+1);
 
     // Add new line to buffer so strtok works
     dataString[length+1] = '\n';
 
-    char* tok;
-    int counter = 0;
+    // A placeholder to walk the pointer through the data string
+    char* tokenPointer;
 
-    tok = strtok(dataString, " ");
-    while(tok != NULL)
-    {
-        std::cout << "Bleh:" << counter << ":" << tok << std::endl;
-        ++counter;
-        tok = strtok(NULL, " ");
-    }
-    // for(size_t i = 0; i < length + 1; ++i)
-    // {
-    //     std::cout << "i:" << dataString[i] << std::endl;
-    // }
-    // std::cout << std::endl;
+    // W: 
+    char* key;
+
+    // The i2c address
+    char* i2cAddress;
+
+    // The register address
+    char* regAddress;
+
+    key = strtok_r(dataString, " ", &tokenPointer);
+    i2cAddress = strtok_r(NULL, " ", &tokenPointer);
+    regAddress = strtok_r(NULL, " ", &tokenPointer);
+
+    std::cout << "Writing to i2c: " << i2cAddress << " at reg: " << regAddress << " with data: " << tokenPointer << std::endl;
+
+    // TODO: Write over i2c
 
     return 0;
 }
